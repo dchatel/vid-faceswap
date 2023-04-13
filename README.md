@@ -7,7 +7,7 @@ It adds a tab dedicated to faceswapping of videos.
 
 |Input|Output|
 |---|---|
-| ![](anya.mp4) | ![](scarlett.mp4) |
+| [![Anya Taylor-Joy](https://i9.ytimg.com/vi_webp/G7Heh2G_w_A/mq2.webp?sqp=CNid4aEG-oaymwEmCMACELQB8quKqQMa8AEB-AHKA4ACygOKAgwIABABGHIgPigyMA8=&rs=AOn4CLDObx5YsWXAbimzPy28lDMzeomSOQ)](https://youtu.be/G7Heh2G_w_A) | [![Scarlett Johansson](https://i9.ytimg.com/vi_webp/_D735PrNRdU/mq2.webp?sqp=CNid4aEG-oaymwEmCMACELQB8quKqQMa8AEB-AHKA4ACygOKAgwIABABGH8gRCgzMA8=&rs=AOn4CLAhiKRdc03NzXiEhSDhUFuPAlEDaA)](https://youtu.be/_D735PrNRdU) |
 
 ### Install
 
