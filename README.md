@@ -7,7 +7,7 @@ It adds a tab dedicated to faceswapping of videos.
 
 |Input|Output|
 |---|---|
-| <video src="anya.mp4" width="460"> | <video src="scarlett.mp4" width="460"> |
+| ![](anya.mp4) | ![](scarlett.mp4) |
 
 ### Install
 
