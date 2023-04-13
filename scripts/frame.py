@@ -16,7 +16,7 @@ class Frame:
         if '_faces' not in self.__dict__:
             self._faces = sorted(
                 filter(
-                    lambda face: face.area / (np.prod(self.shape)) > 0.005,
+                    lambda face: face.area / (np.prod(self.shape)) > 0.0001,
                     [
                         Face(self, det, name=f'{self.name}_{i}')
                         for i, det in enumerate(self.dets)
