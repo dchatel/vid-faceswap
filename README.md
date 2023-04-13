@@ -6,6 +6,7 @@ It adds a tab dedicated to faceswapping of videos.
 <img width="960" alt="" src="interface.png">
 
 Example of swap from Anya Taylor-Joy to Scarlett Johansson, using denoising strength 0.2 and controlnet depth and canny (click to see it on youtube):
+
 [![Anya Talor-Joy to Scarlett Johansson](https://img.youtube.com/vi/TipAErBhazg/hqdefault.jpg)](https://youtu.be/TipAErBhazg)
 
 ### Install
