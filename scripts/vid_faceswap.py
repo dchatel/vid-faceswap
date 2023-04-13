@@ -26,7 +26,7 @@ def rifed(frames, fps, target_fps):
     idxes = np.linspace(0, len(frames) - 1, int(np.round(target_fps / fps * len(frames))))
     np.array(fps / target_fps * len(frames)) / ((target_fps - 1) / fps)
     new_frames = []
-    for idx in idxes:
+    for idx in tqdm(idxes, desc='Interpolating frames'):
         lb, ub = int(np.floor(idx)), int(np.ceil(idx))
         if lb == ub:
             frame = frames[int(idx)]
@@ -65,6 +65,7 @@ def process_video(
     frames = [Frame(i, frame_data, det) for i, (frame_data, det) in enumerate(zip(frames_data, dets))]
 
     faces = [face for frame in frames for face in frame.faces]
+    print(f'{len(faces)} faces found.')
     p = StableDiffusionProcessingImg2Img(
         prompt=txt_pos_prompt,
         negative_prompt=txt_neg_prompt,
