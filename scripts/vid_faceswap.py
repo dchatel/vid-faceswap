@@ -65,6 +65,7 @@ def process_video(
     frames = [Frame(i, frame_data, det) for i, (frame_data, det) in enumerate(zip(frames_data, dets))]
 
     faces = [face for frame in frames for face in frame.faces]
+    FaceDetector.release()
     print(f'{len(faces)} faces found.')
     p = StableDiffusionProcessingImg2Img(
         prompt=txt_pos_prompt,
