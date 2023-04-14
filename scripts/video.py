@@ -19,7 +19,7 @@ def _webp_reader(file, max_fps):
         
         frames_data = list(dec.frames())
 
-    frames = [arr for arr, _ in frames_data]
+    frames = [arr[:,:,:3] for arr, _ in frames_data]
     fps = 1000 * len(frames_data) / frames_data[-1][1]
     if max_fps is not None and fps > max_fps:
         frames = [frame[:,:,:3] for frame in mimread(file, fps=max_fps)]
