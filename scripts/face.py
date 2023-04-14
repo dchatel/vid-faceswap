@@ -4,6 +4,7 @@ import contextlib
 from insightface.utils import face_align
 from insightface.app import FaceAnalysis
 from tqdm import tqdm
+from .batch import batch
 
 class FaceDetector:
     __fa = None
@@ -19,7 +20,10 @@ class FaceDetector:
             with contextlib.redirect_stdout(None):
                 cls.fa = FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider'])
                 cls.fa.prepare(ctx_id=0, det_thresh=0.5)
-        dets = [cls.fa.get(frame) for frame in tqdm(frames_data, desc='Detect Faces')]
+        if isinstance(frames_data, list):
+            dets = [cls.fa.get(frame) for frame in tqdm(frames_data, desc='Detect Faces')]
+        else:
+            dets = cls.fa.get(frames_data)
         return dets
     
 class Face:
@@ -77,7 +81,7 @@ class Face:
                 [0, 0, 50 - t + max(0, (rw - rh) / 2)]]
             ).astype(np.float64)
 
-            rotimg = cv2.warpAffine(self.frame, M+A, (max(rw,rh)+100, max(rw,rh)+100))
+            rotimg = cv2.warpAffine(self.frame.data, M+A, (max(rw,rh)+100, max(rw,rh)+100))
             dets = FaceDetector.get(rotimg)
             if len(dets) > 0:
                 def o(m):
