@@ -135,8 +135,8 @@ def process_video(
             swapped_frame = (swapped + (1 - image_mask) * frame.data).astype(np.uint8)
             swapped_frames.append(swapped_frame)
 
-    if target_fps > max_fps:
-        swapped_frames = rifed(swapped_frames, max_fps, target_fps)
+    if target_fps > fps:
+        swapped_frames = rifed(swapped_frames, fps, target_fps)
         fps = target_fps
 
     video_file = f'{shared.opts.outdir_samples}/{Path(video_input).stem}.mp4'
