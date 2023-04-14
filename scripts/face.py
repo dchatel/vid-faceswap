@@ -77,7 +77,7 @@ class Face:
                 [0, 0, 50 - t + max(0, (rw - rh) / 2)]]
             ).astype(np.float64)
 
-            rotimg = cv2.warpAffine(self.whole_image, M+A, (max(rw,rh)+100, max(rw,rh)+100))
+            rotimg = cv2.warpAffine(self.frame, M+A, (max(rw,rh)+100, max(rw,rh)+100))
             dets = FaceDetector.get(rotimg)
             if len(dets) > 0:
                 def o(m):
