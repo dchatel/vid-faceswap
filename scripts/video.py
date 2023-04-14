@@ -13,7 +13,7 @@ def video_reader(file, max_fps=None):
 def _webp_reader(file, max_fps):
     with open(file, 'rb') as f:
         webp_data = WebPData.from_buffer(f.read())
-        dec_opts = WebPAnimDecoderOptions.new(use_threads=True, color_mode=WebPColorMode.RGB)
+        dec_opts = WebPAnimDecoderOptions.new(use_threads=True)
         dec = WebPAnimDecoder.new(webp_data, dec_opts)
         eps = 1e-7
         
