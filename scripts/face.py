@@ -4,27 +4,24 @@ import contextlib
 from insightface.utils import face_align
 from insightface.app import FaceAnalysis
 from tqdm import tqdm
-from .batch import batch
 
-class FaceDetector:
-    __fa = None
-    
-    @classmethod
-    def release(cls):
-        del cls.__fa
-        cls.__fa = None
-        
-    @classmethod
-    def get(cls, frames_data):
-        if cls.__fa is None:
-            with contextlib.redirect_stdout(None):
-                cls.fa = FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider'])
-                cls.fa.prepare(ctx_id=0, det_thresh=0.5)
-        if isinstance(frames_data, list):
-            dets = [cls.fa.get(frame) for frame in tqdm(frames_data, desc='Detect Faces')]
-        else:
-            dets = cls.fa.get(frames_data)
-        return dets
+_fa = None
+def FaceDetector_get(frames_data):
+    global _fa
+    if _fa is None:
+        with contextlib.redirect_stdout(None):
+            _fa = FaceAnalysis(name='buffalo_l', providers=['CUDAExecutionProvider'])
+            _fa.prepare(ctx_id=0, det_thresh=0.5)
+    if isinstance(frames_data, list):
+        dets = [_fa.get(frame) for frame in tqdm(frames_data, desc='Detect Faces')]
+    else:
+        dets = _fa.get(frames_data)
+    return dets
+
+def FaceDetector_release():
+    global _fa
+    del _fa
+    _fa = None
     
 class Face:
     def __init__(self, frame, det, name) -> None:
@@ -82,7 +79,7 @@ class Face:
             ).astype(np.float64)
 
             rotimg = cv2.warpAffine(self.frame.data, M+A, (max(rw,rh)+100, max(rw,rh)+100))
-            dets = FaceDetector.get(rotimg)
+            dets = FaceDetector_get(rotimg)
             if len(dets) > 0:
                 def o(m):
                     return np.hstack((m, np.ones((m.shape[0],1))))

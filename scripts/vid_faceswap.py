@@ -1,8 +1,9 @@
 from pathlib import Path
 import gradio as gr
 import cv2
-from PIL import Image, ImageFilter
+from PIL import Image
 import numpy as np
+import random
 import pkg_resources
 import torch
 import torchgeometry as tg
@@ -13,11 +14,12 @@ from modules import script_callbacks
 from modules.sd_samplers import samplers_for_img2img
 from modules.ui import create_sampler_and_steps_selection, create_seed_inputs, create_refresh_button
 from modules import shared, sd_samplers
-from modules.processing import StableDiffusionProcessingImg2Img
+from modules.processing import StableDiffusionProcessingImg2Img, get_fixed_seed
+from modules.devices import torch_gc
 
 from scripts.video import video_reader, video_writer
 from scripts.frame import Frame
-from scripts.face import FaceDetector
+from scripts.face import FaceDetector_get, FaceDetector_release
 from scripts.batch import process_batch, batch
 
 def rifed(frames, fps, target_fps):
@@ -57,15 +59,17 @@ def process_video(
         seed_checkbox,
         *args
 ):
+    torch_gc()
+    
     detectmap = shared.opts.control_net_no_detectmap
     shared.opts.control_net_no_detectmap = True
 
     frames_data, fps, audio = video_reader(video_input, max_fps=max_fps if max_fps > 0 else None)
-    dets = FaceDetector.get(frames_data)
+    dets = FaceDetector_get(frames_data)
     frames = [Frame(i, frame_data, det) for i, (frame_data, det) in enumerate(zip(frames_data, dets))]
 
     faces = [face for frame in frames for face in frame.faces]
-    FaceDetector.release()
+    FaceDetector_release()
     print(f'{len(faces)} faces found.')
     p = StableDiffusionProcessingImg2Img(
         prompt=txt_pos_prompt,
@@ -80,18 +84,20 @@ def process_video(
         inpaint_full_res=False,
         inpaint_full_res_padding=padding,
         do_not_save_samples=True,
-        seed=seed,
+        do_not_save_grid=True,
+        seed=get_fixed_seed(seed),
         steps=steps,
         sampler_name=sd_samplers.samplers_for_img2img[sampler_index].name,
         seed_enable_extras=seed_checkbox,
-        subseed=subseed,
+        subseed=get_fixed_seed(subseed),
         subseed_strength=subseed_strength,
         seed_resize_from_h=seed_resize_from_h,
         seed_resize_from_w=seed_resize_from_w,
     )
     p.scripts = modules.scripts.scripts_txt2img
-    p.script_args = args        
-    swapped_faces = process_batch(p, [face.crop(size, padding) for face in faces], *args)
+    p.script_args = args
+    crops = [face.crop(size, padding) for face in faces]
+    swapped_faces = process_batch(p, crops, *args)
     p.close()
     shared.opts.control_net_no_detectmap = detectmap
     
