@@ -1,7 +1,7 @@
 from pathlib import Path
 import gradio as gr
 import cv2
-from PIL import Image
+from PIL import Image, ImageDraw
 import numpy as np
 import random
 import pkg_resources
@@ -43,7 +43,7 @@ def process_video(
         target_fps,
         batch_size,
         size,
-        padding,
+        alpha,
         prompt_styles,
         txt_pos_prompt,
         txt_neg_prompt,
@@ -79,10 +79,15 @@ def process_video(
         height=size,
         init_images=None,
         batch_size=batch_size,
-        image_cfg_scale=cfg_scale,
+        cfg_scale=cfg_scale,
         denoising_strength=denoising_strength,
-        inpaint_full_res=False,
-        inpaint_full_res_padding=padding,
+        inpaint_full_res=1,
+        resize_mode=0,
+        image_cfg_scale=1.5,
+        inpainting_mask_invert=0,
+        inpainting_fill=1,
+        inpaint_full_res_padding=32,
+        mask_blur=4,
         do_not_save_samples=True,
         do_not_save_grid=True,
         seed=get_fixed_seed(seed),
@@ -96,28 +101,35 @@ def process_video(
     )
     p.scripts = modules.scripts.scripts_txt2img
     p.script_args = args
-    crops = [face.crop(size, padding) for face in faces]
+    
+    alpha = 1 / (1+alpha)
+    padding = int((size-alpha*size)*0.5)
+
+    mask = np.zeros((size, size))
+    c = (size) // 2
+    mask = cv2.circle(mask, (c, c), padding, 255, -1).astype(np.uint8)
+    p.image_mask = Image.fromarray(mask, 'L')
+    mask = np.array(mask, dtype=np.float32)
+    mask = cv2.blur(mask, (padding, padding))
+    mask = mask[...,None]
+
+    crops = [face.crop(size, alpha, padding) for face in faces]
     swapped_faces = process_batch(p, crops, *args)
     p.close()
     shared.opts.control_net_no_detectmap = detectmap
     
     for face, swapped_face in zip(faces, swapped_faces):
         face.swapped = swapped_face
-    
-    mask = np.zeros((size, size))
-    c = (size) // 2
-    mask = cv2.circle(mask, (c, c), c - padding, 1, -1)
-    mask = cv2.blur(mask, (padding, padding))[...,None]
 
     def batchwarp(minibatch):
         target_crops = [np.array(source.swapped) for source in minibatch]
         target_crops_t = torch.from_numpy(np.array(target_crops).transpose(0, 3, 1, 2)).float().cuda()
-        M_t = torch.from_numpy(np.array([face.iM(size-2*padding) for face in minibatch])).float().cuda()
+        M_t = torch.from_numpy(np.array([face.iM(alpha,padding) for face in minibatch])).float().cuda()
         warped_crops = tg.warp_affine(target_crops_t, M_t, frames[0].shape[:2]).cpu().detach().numpy().transpose(0, 2, 3, 1).astype(np.uint8)
         masks = torch.from_numpy(np.array([mask] * len(target_crops)).transpose(0, 3, 1, 2)).float().cuda()
-        wraped_masks = tg.warp_affine(masks, M_t, frames[0].shape[:2]).cpu().detach().numpy().transpose(0, 2, 3, 1).astype(np.float32)
+        warped_masks = tg.warp_affine(masks, M_t, frames[0].shape[:2]).cpu().detach().numpy().transpose(0, 2, 3, 1).astype(np.float32)
 
-        for face, warped, wraped_mask in zip(minibatch, warped_crops, wraped_masks):
+        for face, warped, wraped_mask in zip(minibatch, warped_crops, warped_masks):
             face.warped = warped
             face.mask = wraped_mask
     batch(faces, batchwarp, max_batch_size=50, desc='Warping Swaps')
@@ -176,7 +188,8 @@ def add_tab():
                     batch_size = gr.Slider(label='Batch Size', minimum=1, maximum=64, step=1, value=8)
                 with gr.Row():
                     size = gr.Slider(label='Size', minimum=512, maximum=1024, step=8, value=512)
-                    padding = gr.Slider(label='Padding', minimum=0, maximum=128, step=1, value=32)
+                    alpha = gr.Slider(label='% Region Increase', minimum=0, maximum=3, step=0.1, value=1)
+
                 steps, sampler_index = create_sampler_and_steps_selection(samplers_for_img2img, 'vid-faceswap')
                 cfg_scale = gr.Slider(label='CFG Scale', minimum=1, maximum=30, step=0.5, value=7)
                 denoising_strength = gr.Slider(label='Denoising Strength', minimum=0, maximum=1, step=0.01, value=0.2)
@@ -193,7 +206,7 @@ def add_tab():
             target_fps,
             batch_size,
             size,
-            padding,
+            alpha,
             prompt_styles,
             txt_pos_prompt,
             txt_neg_prompt,

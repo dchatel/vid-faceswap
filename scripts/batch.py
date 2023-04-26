@@ -42,12 +42,12 @@ def process_batch(p:StableDiffusionProcessingImg2Img, images, *args):
     processing.fix_seed(p)
 
     state.job_count = np.ceil(len(images) / p.batch_size)
-    total_size = p.height + 2*p.inpaint_full_res_padding
-    mask_size = p.height
-    mask_image = np.ones((total_size, total_size))
-    mask_image = cv2.circle(mask_image, (int(total_size/2), int(total_size/2)), int(mask_size/2), 0, -1)
-    # p.image_mask = Image.fromarray(mask_image, 'L')
-    p.image_mask = None
+    # total_size = p.height + 2*p.inpaint_full_res_padding
+    # mask_size = p.height
+    # mask_image = np.ones((total_size, total_size))
+    # mask_image = cv2.circle(mask_image, (int(total_size/2), int(total_size/2)), int(mask_size/2), 0, -1)
+    # # p.image_mask = Image.fromarray(mask_image, 'L')
+    # p.image_mask = None
 
     tasklist = np.array(images)
     rest = tasklist

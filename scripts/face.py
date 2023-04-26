@@ -49,16 +49,17 @@ class Face:
         l, t, r, b = self.bbox
         return abs(l-r) * abs(t-b)
     
-    def crop(self, size, padding):
-        return cv2.warpAffine(self.frame.data, self.M(size-2*padding), (size, size), borderValue=0.0)
+    def crop(self, size, alpha, padding):
+        return cv2.warpAffine(self.frame.data, self.M(alpha,padding), (size, size), borderValue=0.0)
 
-    def M(self, size=512):
+    def M(self, alpha=1, padding=0):
         if '_M' not in self.__dict__:
             self.__set_M()
-        return (size / 512) * self._M
+        m = alpha * self._M + np.array([[0,0,padding],[0,0,padding]])
+        return m
 
-    def iM(self, size=512):
-        return cv2.invertAffineTransform((size / 512) * self.M())
+    def iM(self, alpha, padding=0):
+        return cv2.invertAffineTransform(alpha * self.M() + np.array([[0,0,padding],[0,0,padding]]))
     
     def __set_M(self):
         l, t, r, b = self.bbox
