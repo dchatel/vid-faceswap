@@ -4,6 +4,7 @@ import cv2
 from PIL import Image, ImageDraw
 import numpy as np
 import random
+from datetime import datetime
 import pkg_resources
 import torch
 import torchgeometry as tg
@@ -11,7 +12,6 @@ from tqdm import tqdm
 
 import modules
 from modules import script_callbacks
-from modules.sd_samplers import samplers_for_img2img
 from modules.ui import create_sampler_and_steps_selection, create_seed_inputs, create_refresh_button
 from modules import shared, sd_samplers
 from modules.processing import StableDiffusionProcessingImg2Img, get_fixed_seed
@@ -158,7 +158,7 @@ def process_video(
         swapped_frames = rifed(swapped_frames, fps, target_fps)
         fps = target_fps
 
-    video_file = f'{shared.opts.outdir_samples}/{Path(video_input).stem}.mp4'
+    video_file = f'{shared.opts.outdir_samples}/{datetime.now():%Y%m%d%H%M%S%f} {Path(video_input).stem}.mp4'
     video_writer(video_file, swapped_frames, fps, audio)
     return video_file
 
@@ -190,7 +190,7 @@ def add_tab():
                     size = gr.Slider(label='Size', minimum=512, maximum=1024, step=8, value=512)
                     alpha = gr.Slider(label='% Region Increase', minimum=0, maximum=3, step=0.1, value=1)
 
-                steps, sampler_index = create_sampler_and_steps_selection(samplers_for_img2img, 'vid-faceswap')
+                steps, sampler_index = create_sampler_and_steps_selection(modules.sd_samplers.samplers, 'vid-faceswap')
                 cfg_scale = gr.Slider(label='CFG Scale', minimum=1, maximum=30, step=0.5, value=7)
                 denoising_strength = gr.Slider(label='Denoising Strength', minimum=0, maximum=1, step=0.01, value=0.2)
                 seed, _, subseed, _, subseed_strength, seed_resize_from_h, seed_resize_from_w, seed_checkbox = create_seed_inputs('txt2img')
