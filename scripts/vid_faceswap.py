@@ -60,9 +60,6 @@ def process_video(
         *args
 ):
     torch_gc()
-    
-    detectmap = shared.opts.control_net_no_detectmap
-    shared.opts.control_net_no_detectmap = True
 
     frames_data, fps, audio = video_reader(video_input, max_fps=max_fps if max_fps > 0 else None)
     dets = FaceDetector_get(frames_data)
@@ -116,7 +113,6 @@ def process_video(
     crops = [face.crop(size, alpha, padding) for face in faces]
     swapped_faces = process_batch(p, crops, *args)
     p.close()
-    shared.opts.control_net_no_detectmap = detectmap
     
     for face, swapped_face in zip(faces, swapped_faces):
         face.swapped = swapped_face
