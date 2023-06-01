@@ -28,10 +28,10 @@ def _webp_reader(file, max_fps):
     return frames, fps, None
 
 def _ffmpeg_reader(file, max_fps):
-    with VideoFileClip(file) as clip:
-        target_fps = min(max_fps, clip.fps) if max_fps is not None else clip.fps
-        frames = list(clip.iter_frames(target_fps))
-        audio = AudioFileClip(file) if clip.audio is not None else None
+    clip = VideoFileClip(file)
+    target_fps = min(max_fps, clip.fps) if max_fps is not None else clip.fps
+    frames = list(clip.iter_frames(target_fps))
+    audio = AudioFileClip(file) if clip.audio is not None else None
         
     return frames, target_fps, audio
 
